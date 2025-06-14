@@ -1,13 +1,11 @@
 //! A hashmap whose keys are defined by types.
 
 use std::any::{Any, TypeId};
-use std::collections::hash_map::IntoIter;
 use std::collections::hash_map::{
     Entry as HashMapEntry, OccupiedEntry as HashMapOccupiedEntry, VacantEntry as HashMapVacantEntry,
 };
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::iter::FromIterator;
 use std::marker::PhantomData;
 
 /// The default type used for storing values in a [`TypeMap`].
@@ -321,27 +319,6 @@ where
     }
 }
 
-impl<S: ?Sized> Extend<(TypeId, Box<S>)> for TypeMap<S> {
-    fn extend<T: IntoIterator<Item = (TypeId, Box<S>)>>(&mut self, iter: T) {
-        self.0.extend(iter)
-    }
-}
-
-impl<S: ?Sized> IntoIterator for TypeMap<S> {
-    type Item = (TypeId, Box<S>);
-    type IntoIter = IntoIter<TypeId, Box<S>>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
-
-impl<S: ?Sized> FromIterator<(TypeId, Box<S>)> for TypeMap<S> {
-    fn from_iter<T: IntoIterator<Item = (TypeId, Box<S>)>>(iter: T) -> Self {
-        Self(HashMap::from_iter(iter))
-    }
-}
-
 /// A view into a single entry in the [`TypeMap`],
 /// which may either be vacant or occupied.
 ///
@@ -547,32 +524,6 @@ mod test {
 
         let map = TypeMap::<DefaultStorage>::default();
         assert!(map.get::<Text>().is_none());
-    }
-
-    #[test]
-    fn typemap_iter() {
-        let mut map = TypeMap::new();
-        map.insert::<Text>(String::from("foobar"));
-
-        // creating the iterator
-        let mut iterator = map.into_iter();
-
-        // ensuring that the iterator contains our entries
-        assert_eq!(iterator.next().unwrap().0, TypeId::of::<Text>());
-    }
-
-    #[test]
-    fn typemap_extend() {
-        let mut map = TypeMap::new();
-        map.insert::<Text>(String::from("foobar"));
-
-        let mut map_2 = TypeMap::new();
-        // extending our second map with the first one
-        map_2.extend(map);
-
-        // ensuring that the new map now contains the entries from the first one
-        let original = map_2.get::<Text>().unwrap();
-        assert_eq!(original, "foobar");
     }
 
     fn is_debug<T: Debug>() {}
