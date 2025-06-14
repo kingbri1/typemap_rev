@@ -132,6 +132,30 @@ impl<S: ?Sized + Any + Send + Sync> TypeMap<S> {
         self.0.clear();
     }
 
+    /// Accesses the inner `HashMap`.
+    ///
+    /// # Safety
+    ///
+    /// The map has the invariant that for a given `T: TypeMapKey` exists
+    /// a `T::Value`, which is stored in a boxed trait object.
+    ///
+    /// This access is safe so long as the above invariant is maintained.
+    pub unsafe fn data(&self) -> &HashMap<TypeId, Box<S>> {
+        &self.0
+    }
+
+    /// Accesses the inner `HashMap`.
+    ///
+    /// # Safety
+    ///
+    /// The map has the invariant that for a given `T: TypeMapKey` exists
+    /// a `T::Value`, which is stored in a boxed trait object.
+    ///
+    /// This access is safe so long as the above invariant is maintained.
+    pub unsafe fn data_mut(&mut self) -> &mut HashMap<TypeId, Box<S>> {
+        &mut self.0
+    }
+
     /// Returns `true` if the map contains a value for the specified [`TypeMapKey`].
     ///
     /// ```rust
